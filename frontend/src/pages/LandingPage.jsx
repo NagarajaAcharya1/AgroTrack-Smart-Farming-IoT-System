@@ -114,15 +114,15 @@ const LandingPage = () => {
                                         <div key={i} className="border border-slate-700"></div>
                                     ))}
                                 </div>
-                                <Sprout size={120} className="text-agro-500 mb-6 drop-shadow-2xl relative z-10" />
-                                <div className="text-2xl font-bold relative z-10">Field Rover 01</div>
-                                <div className="text-agro-400 relative z-10">Status: Online & Scanning</div>
+                                <Sprout size={120} className="text-agro-500 mb-4 md:mb-6 drop-shadow-2xl relative z-10" />
+                                <div className="text-xl md:text-2xl font-bold relative z-10 mb-1">Field Rover 01</div>
+                                <div className="text-agro-400 relative z-10 text-sm md:text-base">Status: Online & Scanning</div>
 
                                 {/* Fake data points popping up */}
-                                <div className="absolute top-10 right-10 bg-slate-800 p-2 rounded-lg border border-slate-600 text-xs shadow-lg animate-bounce">
+                                <div className="absolute top-4 right-4 md:top-10 md:right-10 bg-slate-800 p-2 rounded-lg border border-slate-600 text-xs shadow-lg animate-bounce">
                                     Wait... 23°C
                                 </div>
-                                <div className="absolute bottom-20 left-10 bg-slate-800 p-2 rounded-lg border border-slate-600 text-xs shadow-lg animate-bounce" style={{ animationDelay: '1s' }}>
+                                <div className="absolute bottom-4 left-4 md:bottom-20 md:left-10 bg-slate-800 p-2 rounded-lg border border-slate-600 text-xs shadow-lg animate-bounce" style={{ animationDelay: '1s' }}>
                                     Moisture: 65%
                                 </div>
                             </div>
