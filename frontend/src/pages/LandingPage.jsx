@@ -1,11 +1,13 @@
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sprout, BarChart2, ShieldCheck, ArrowRight, Sun, Moon } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Sprout, BarChart2, ShieldCheck, ArrowRight, Sun, Moon, Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import Footer from '../components/Footer';
 
 const LandingPage = () => {
     const { theme, toggleTheme } = useTheme();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     return (
         <div className="min-h-screen overflow-hidden relative transition-colors duration-300 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
@@ -14,7 +16,9 @@ const LandingPage = () => {
                     <Sprout className="text-agro-500" size={32} />
                     <span className="text-2xl font-bold tracking-tight">AgroTrack</span>
                 </div>
-                <div className="flex gap-4 items-center">
+
+                {/* Desktop Nav */}
+                <div className="hidden md:flex gap-4 items-center">
                     <button
                         onClick={toggleTheme}
                         className="p-2 rounded-full text-slate-400 hover:bg-slate-800 transition-colors"
@@ -26,7 +30,41 @@ const LandingPage = () => {
                         Live Demo
                     </Link>
                 </div>
+
+                {/* Mobile Menu Toggle */}
+                <div className="md:hidden flex items-center gap-4">
+                    <button
+                        onClick={toggleTheme}
+                        className="p-2 rounded-full text-slate-400 hover:bg-slate-800 transition-colors"
+                    >
+                        {theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
+                    </button>
+                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-slate-600 dark:text-slate-300">
+                        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
             </nav>
+
+            {/* Mobile Menu Overlay */}
+            <AnimatePresence>
+                {isMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="absolute top-20 left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-6 z-30 shadow-xl md:hidden"
+                    >
+                        <div className="flex flex-col gap-4">
+                            <Link to="/login" className="text-center py-3 text-slate-600 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
+                                Login
+                            </Link>
+                            <Link to="/dashboard" className="text-center py-3 bg-agro-500 text-white font-bold rounded-lg shadow-lg shadow-agro-500/20">
+                                Live Demo
+                            </Link>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Hero Section */}
             <div className="relative pt-20 pb-32 lg:pt-32 px-6">

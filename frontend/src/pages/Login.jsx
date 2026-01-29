@@ -41,13 +41,15 @@ const Login = () => {
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-900 transition-colors duration-300 px-4 relative">
-            <Link
-                to="/"
-                className="absolute top-6 left-6 flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-agro-600 dark:hover:text-agro-400 transition-colors font-medium"
-            >
-                <ArrowLeft size={20} />
-                Back to Home
-            </Link>
+            <div className="w-full max-w-md mb-8">
+                <Link
+                    to="/"
+                    className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-agro-600 dark:hover:text-agro-400 transition-colors font-medium"
+                >
+                    <ArrowLeft size={20} />
+                    Back to Home
+                </Link>
+            </div>
 
             <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
                 <div className="bg-agro-500 p-8 text-center">

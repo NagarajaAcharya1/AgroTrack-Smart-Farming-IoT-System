@@ -10,13 +10,13 @@
 }
 
 h1 {
-  font-size: 3.2em;
+  @apply text-4xl md:text-5xl font-bold;
   line-height: 1.1;
 }
 
 @layer components {
   .card {
-    @apply bg-white dark:bg-slate-800 rounded-xl p-6 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700 transition-all duration-300;
+    @apply bg-white dark:bg-slate-800 rounded-xl p-4 md:p-6 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700 transition-all duration-300;
   }
 
   .btn-primary {
