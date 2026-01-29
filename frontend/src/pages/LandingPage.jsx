@@ -108,21 +108,21 @@ const LandingPage = () => {
                         {/* Abstract Farm/Robot Illustration Placeholder (using CSS shapes) */}
                         <div className="relative w-full aspect-square max-w-lg mx-auto">
                             <div className="absolute inset-0 bg-gradient-to-br from-agro-500/30 to-blue-500/30 rounded-3xl blur-3xl animate-pulse"></div>
-                            <div className="relative bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl h-full flex flex-col items-center justify-center overflow-hidden">
+                            <div className="relative bg-slate-900 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl p-6 shadow-2xl h-full flex flex-col items-center justify-center overflow-hidden">
                                 <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-20">
                                     {[...Array(36)].map((_, i) => (
-                                        <div key={i} className="border border-slate-700"></div>
+                                        <div key={i} className="border border-slate-300 dark:border-slate-700"></div>
                                     ))}
                                 </div>
                                 <Sprout size={120} className="text-agro-500 mb-4 md:mb-6 drop-shadow-2xl relative z-10" />
-                                <div className="text-xl md:text-2xl font-bold relative z-10 mb-1">Field Rover 01</div>
+                                <div className="text-xl md:text-2xl font-bold relative z-10 mb-1 text-white">Field Rover 01</div>
                                 <div className="text-agro-400 relative z-10 text-sm md:text-base">Status: Online & Scanning</div>
 
                                 {/* Fake data points popping up */}
-                                <div className="absolute top-4 right-4 md:top-10 md:right-10 bg-slate-800 p-2 rounded-lg border border-slate-600 text-xs shadow-lg animate-bounce">
+                                <div className="absolute top-4 right-4 md:top-10 md:right-10 bg-slate-800 dark:bg-slate-800 p-2 rounded-lg border border-slate-600 dark:border-slate-600 text-xs shadow-lg animate-bounce text-white">
                                     Wait... 23°C
                                 </div>
-                                <div className="absolute bottom-4 left-4 md:bottom-20 md:left-10 bg-slate-800 p-2 rounded-lg border border-slate-600 text-xs shadow-lg animate-bounce" style={{ animationDelay: '1s' }}>
+                                <div className="absolute bottom-4 left-4 md:bottom-20 md:left-10 bg-slate-800 dark:bg-slate-800 p-2 rounded-lg border border-slate-600 dark:border-slate-600 text-xs shadow-lg animate-bounce text-white" style={{ animationDelay: '1s' }}>
                                     Moisture: 65%
                                 </div>
                             </div>
