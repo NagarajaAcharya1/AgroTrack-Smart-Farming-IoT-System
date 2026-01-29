@@ -24,7 +24,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: process.env.FRONTEND_URL || "*",
+        origin: "https://agrotrack-frontend.onrender.com",
         methods: ["GET", "POST"]
     }
 });
@@ -32,12 +32,9 @@ const io = new Server(server, {
 // -------------------- Middlewares --------------------
 app.use(cors({
     origin: [
-        "https://agrotrack-frontend.onrender.com",
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://localhost:3000"
+        "https://agrotrack-frontend.onrender.com"
     ],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
 
