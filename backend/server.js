@@ -24,18 +24,17 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: "https://agrotrack-frontend.onrender.com",
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });
 
 // -------------------- Middlewares --------------------
 app.use(cors({
-    origin: [
-        "https://agrotrack-frontend.onrender.com"
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: false
 }));
 
 app.use(express.json());
