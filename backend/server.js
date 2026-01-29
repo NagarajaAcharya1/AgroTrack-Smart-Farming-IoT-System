@@ -30,7 +30,14 @@ const io = new Server(server, {
 });
 
 // -------------------- Middlewares --------------------
-app.use(cors());
+app.use(cors({
+    origin: [
+        "https://agrotrack-frontend.onrender.com"
+    ],
+    methods: ["GET", "POST"],
+    credentials: true
+}));
+
 app.use(express.json());
 
 // -------------------- Database Connection --------------------
