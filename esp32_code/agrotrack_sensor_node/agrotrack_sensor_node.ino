@@ -144,7 +144,7 @@ void readAndSendSensorData()
     delay(2000); // DHT11 needs time
     temperature = dht.readTemperature();
     humidity = dht.readHumidity();
-    
+
     if (isnan(temperature) || isnan(humidity))
     {
       Serial.println("❌ DHT11 Not Connected - Using defaults");
@@ -156,12 +156,15 @@ void readAndSendSensorData()
   // -------- Soil Moisture --------
   int soilRaw = analogRead(SOIL_PIN);
   Serial.printf("[DEBUG] Soil Raw ADC: %d\n", soilRaw);
-  
+
   float soilPercent;
-  if (soilRaw == 0 || soilRaw == 4095) {
+  if (soilRaw == 0 || soilRaw == 4095)
+  {
     Serial.println("⚠️ Soil sensor may not be connected");
     soilPercent = map(soilRaw, SOIL_DRY, SOIL_WET, 0, 100);
-  } else {
+  }
+  else
+  {
     soilPercent = map(soilRaw, SOIL_DRY, SOIL_WET, 0, 100);
   }
   soilPercent = constrain(soilPercent, 0, 100);
@@ -169,12 +172,15 @@ void readAndSendSensorData()
   // -------- Rain Sensor --------
   int rainRaw = analogRead(RAIN_PIN);
   Serial.printf("[DEBUG] Rain Raw ADC: %d\n", rainRaw);
-  
+
   float rainPercent;
-  if (rainRaw == 0 || rainRaw == 4095) {
+  if (rainRaw == 0 || rainRaw == 4095)
+  {
     Serial.println("⚠️ Rain sensor may not be connected");
     rainPercent = map(rainRaw, RAIN_DRY, RAIN_WET, 0, 100);
-  } else {
+  }
+  else
+  {
     rainPercent = map(rainRaw, RAIN_DRY, RAIN_WET, 0, 100);
   }
   rainPercent = constrain(rainPercent, 0, 100);

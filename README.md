@@ -6,47 +6,30 @@ Real-time agricultural monitoring system using ESP32 sensors, Node.js backend, a
 ![ESP32](https://img.shields.io/badge/ESP32-Compatible-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-> 📚 **[Complete Documentation Index](DOCUMENTATION_INDEX.md)** - Find all guides and tutorials
-
----
-
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [System Architecture](#system-architecture)
-- [Quick Start](#quick-start)
-- [ESP32 Hardware Setup](#esp32-hardware-setup)
-- [Documentation](#documentation)
-- [Tech Stack](#tech-stack)
-- [Screenshots](#screenshots)
-- [Contributing](#contributing)
-
 ---
 
 ## 🎯 Overview
 
-AgroTrack is a full-stack IoT solution for monitoring agricultural fields in real-time. It collects data from ESP32-based sensor nodes (temperature, humidity, soil moisture) and displays it on a responsive web dashboard with real-time updates via WebSocket.
+AgroTrack is a full-stack IoT solution for monitoring agricultural fields in real-time. It collects data from ESP32-based sensor nodes (temperature, humidity, soil moisture, rain detection) and displays it on a responsive web dashboard with real-time updates via WebSocket.
 
-**Perfect for:**
-- Small to medium farms
-- Research projects
-- Smart agriculture demonstrations
-- IoT learning projects
+**Key Feature:** Dashboard shows **ONLY real ESP32 sensor data** - no simulated or demo data!
 
 ---
 
 ## ✨ Features
 
 ### 📊 Real-Time Monitoring
-- Live sensor data updates every 5 seconds
+- Live sensor data from ESP32 every 5 seconds
 - WebSocket-based instant notifications
 - Interactive charts and graphs
+- **Shows actual sensor readings only**
 
 ### 🌡️ Multi-Sensor Support
-- Temperature monitoring (DHT22)
+- Temperature monitoring (DHT11)
 - Humidity tracking
 - Soil moisture levels
+- Rain detection
+- Obstacle detection (Ultrasonic)
 - Crop health index calculation
 
 ### 🚨 Smart Alerts
@@ -63,11 +46,13 @@ AgroTrack is a full-stack IoT solution for monitoring agricultural fields in rea
 - Dark/Light mode toggle
 - Responsive design (mobile-friendly)
 - Real-time status indicators
+- Glassmorphism design
 
-### 🔐 User Management
-- Authentication system
-- Admin panel
-- Role-based access
+### 🌐 ESP32 Web Dashboard
+- Built-in web server on ESP32
+- Access sensor data directly from ESP32
+- No backend needed for quick checks
+- Mobile-friendly interface
 
 ---
 
@@ -77,13 +62,14 @@ AgroTrack is a full-stack IoT solution for monitoring agricultural fields in rea
 ┌─────────────┐         WiFi          ┌─────────────┐
 │   ESP32     │ ──────────────────►   │   Backend   │
 │  + Sensors  │    HTTP POST          │  (Node.js)  │
-└─────────────┘                       └──────┬──────┘
-                                             │
-                                             │ MongoDB
-                                             ▼
+└─────────────┘    Every 5s           └──────┬──────┘
+       │                                     │
+       │ Built-in Web Server                 │ MongoDB
+       ▼                                     ▼
 ┌─────────────┐      WebSocket        ┌─────────────┐
-│   React     │ ◄────────────────────►│  Socket.IO  │
-│  Dashboard  │    Real-time Data     │   Server    │
+│   Direct    │                       │   React     │
+│   Access    │ ◄────────────────────►│  Dashboard  │
+│ (Optional)  │    Real-time Data     │   (Main)    │
 └─────────────┘                       └─────────────┘
 ```
 
@@ -93,7 +79,7 @@ AgroTrack is a full-stack IoT solution for monitoring agricultural fields in rea
 
 ### Prerequisites
 - Node.js 16+ and npm
-- MongoDB Atlas account (free tier)
+- MongoDB (local or Atlas)
 - Arduino IDE (for ESP32)
 - ESP32 board + sensors
 
@@ -111,14 +97,15 @@ npm install
 
 Create `.env` file:
 ```env
-MONGO_URI=your_mongodb_connection_string
+MONGO_URI=mongodb://localhost:27017/agrotrack
 PORT=3001
 ENABLE_SIMULATOR=false
+JWT_SECRET=your_secret_key
 ```
 
 Start backend:
 ```bash
-npm run dev
+npm start
 ```
 
 ### 3. Frontend Setup
@@ -128,10 +115,27 @@ npm install
 npm run dev
 ```
 
-### 4. Access Dashboard
+### 4. ESP32 Setup
+
+**Option 1: Main Sensor Node (Sends to Backend)**
+1. Open `esp32_code/agrotrack_sensor_node/agrotrack_sensor_node.ino`
+2. Update WiFi: `NetKing` / `11111111`
+3. Update server URL with your laptop IP:
+   ```cpp
+   const char* serverUrl = "http://YOUR_LAPTOP_IP:3001/api/sensor-data";
+   ```
+4. Upload to ESP32
+
+**Option 2: Web Dashboard Node (Built-in Web Server)**
+1. Open `esp32_code/agrotrack_web_dashboard/agrotrack_web_dashboard.ino`
+2. Update WiFi credentials
+3. Upload to ESP32
+4. Access dashboard at `http://ESP32_IP`
+
+### 5. Access Dashboard
 Open browser: `http://localhost:5173`
 
-**Demo Login:**
+**Login:**
 - Email: `admin@agro.com`
 - Password: `admin`
 
@@ -141,13 +145,15 @@ Open browser: `http://localhost:5173`
 
 ### Required Components
 - ESP32 Development Board
-- DHT22 Temperature/Humidity Sensor
+- DHT11 Temperature/Humidity Sensor
 - Capacitive Soil Moisture Sensor
+- Rain Sensor Module
+- HC-SR04 Ultrasonic Sensor
 - Jumper wires & Breadboard
 
-### Quick Wiring
+### Wiring Diagram
 ```
-DHT22:
+DHT11:
   VCC  → ESP32 3.3V
   DATA → ESP32 GPIO 4
   GND  → ESP32 GND
@@ -156,22 +162,20 @@ Soil Moisture:
   VCC  → ESP32 3.3V
   AOUT → ESP32 GPIO 34
   GND  → ESP32 GND
+
+Rain Sensor:
+  VCC  → ESP32 3.3V
+  AOUT → ESP32 GPIO 35
+  GND  → ESP32 GND
+
+Ultrasonic HC-SR04:
+  VCC  → ESP32 5V
+  TRIG → ESP32 GPIO 5
+  ECHO → ESP32 GPIO 18
+  GND  → ESP32 GND
 ```
 
-### Upload Code
-1. Open `esp32_code/agrotrack_sensor_node.ino` in Arduino IDE
-2. **Update WiFi credentials:** `iQOO Neo9 Pro` / `abcdefghi`
-3. **Update server URL:** Replace `YOUR_LAPTOP_IP` with your actual laptop IP
-4. Select Board: "ESP32 Dev Module"
-5. Upload to ESP32
-6. Open Serial Monitor (115200 baud)
-
-**See:** [QUICK_CONFIG.md](QUICK_CONFIG.md) - Simple configuration guide
-
-**See detailed guides:**
-- 📘 [ESP32 Integration Guide](ESP32_INTEGRATION_GUIDE.md) - Complete setup
-- ⚡ [Quick Start Guide](ESP32_QUICK_START.md) - 5-minute setup
-- 🔌 [Wiring Diagram](ESP32_WIRING_DIAGRAM.md) - Visual connections
+**See:** [ESP32_WIRING_DIAGRAM.md](ESP32_WIRING_DIAGRAM.md) for detailed connections
 
 ---
 
@@ -179,11 +183,11 @@ Soil Moisture:
 
 | Document | Description |
 |----------|-------------|
-| [CODE_STRUCTURE_GUIDE.md](CODE_STRUCTURE_GUIDE.md) | Complete code architecture & workflow |
-| [ESP32_INTEGRATION_GUIDE.md](ESP32_INTEGRATION_GUIDE.md) | Full ESP32 hardware integration |
-| [ESP32_QUICK_START.md](ESP32_QUICK_START.md) | 5-minute ESP32 setup |
-| [ESP32_WIRING_DIAGRAM.md](ESP32_WIRING_DIAGRAM.md) | Detailed wiring instructions |
-| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Deploy to Render & MongoDB Atlas |
+| [QUICK_CONFIG.md](QUICK_CONFIG.md) | Simple WiFi/IP configuration |
+| [DATA_FLOW_VERIFICATION.md](DATA_FLOW_VERIFICATION.md) | Verify ESP32 → Dashboard data flow |
+| [FINAL_SETUP_COMPLETE.md](FINAL_SETUP_COMPLETE.md) | Current system status |
+| [FIX_CONNECTION_REFUSED.md](FIX_CONNECTION_REFUSED.md) | Troubleshoot connection issues |
+| [TESTING_WITHOUT_SENSORS.md](TESTING_WITHOUT_SENSORS.md) | Test without physical sensors |
 
 ---
 
@@ -195,7 +199,6 @@ Soil Moisture:
 - **Tailwind CSS** - Styling
 - **Chart.js** - Data visualization
 - **Socket.IO Client** - Real-time updates
-- **React Router** - Navigation
 - **Axios** - HTTP requests
 
 ### Backend
@@ -204,63 +207,13 @@ Soil Moisture:
 - **MongoDB** - Database
 - **Mongoose** - ODM
 - **Socket.IO** - WebSocket server
-- **CORS** - Cross-origin support
 
 ### Hardware
 - **ESP32** - Microcontroller
-- **DHT22** - Temperature/Humidity sensor
+- **DHT11** - Temperature/Humidity sensor
 - **Capacitive Soil Moisture Sensor**
-- **Arduino IDE** - Programming environment
-
----
-
-## 📸 Screenshots
-
-### Dashboard
-Real-time monitoring with live sensor cards and charts
-
-### History View
-Historical data analysis with date range filtering
-
-### Admin Panel
-System statistics and management
-
-### Mobile Responsive
-Works seamlessly on all devices
-
----
-
-## 🗂️ Project Structure
-
-```
-AgroTrack/
-├── backend/                    # Node.js Express server
-│   ├── models/                 # MongoDB schemas
-│   │   ├── SensorData.js
-│   │   ├── Alert.js
-│   │   └── User.js
-│   ├── server.js              # Main server
-│   ├── simulator.js           # Data simulator
-│   └── package.json
-│
-├── frontend/                   # React application
-│   ├── src/
-│   │   ├── components/        # Reusable components
-│   │   ├── pages/             # Route pages
-│   │   ├── context/           # React context
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   └── package.json
-│
-├── esp32_code/                 # Arduino sketches
-│   └── agrotrack_sensor_node.ino
-│
-├── CODE_STRUCTURE_GUIDE.md     # Architecture guide
-├── ESP32_INTEGRATION_GUIDE.md  # Hardware setup
-├── ESP32_QUICK_START.md        # Quick reference
-├── ESP32_WIRING_DIAGRAM.md     # Wiring details
-└── DEPLOYMENT_GUIDE.md         # Deployment instructions
-```
+- **Rain Sensor Module**
+- **HC-SR04** - Ultrasonic distance sensor
 
 ---
 
@@ -268,44 +221,31 @@ AgroTrack/
 
 1. **ESP32** reads sensors every 5 seconds
 2. **HTTP POST** sends data to backend API
-3. **Backend** saves to MongoDB
+3. **Backend** saves to MongoDB and logs: `📥 Received sensor data: {...}`
 4. **Socket.IO** broadcasts to connected clients
 5. **React Dashboard** updates in real-time
 6. **Alerts** trigger on threshold violations
 
----
-
-## 🎯 Use Cases
-
-- **Precision Agriculture**: Monitor soil conditions for optimal irrigation
-- **Research**: Collect environmental data for agricultural studies
-- **Education**: Learn IoT, full-stack development, and hardware integration
-- **Smart Farming**: Automate farm management decisions
-- **Remote Monitoring**: Check field conditions from anywhere
+**Dashboard shows EXACTLY what ESP32 Serial Monitor shows!**
 
 ---
 
-## 🔧 Configuration
+## 🎯 Key Features
 
-### Backend Environment Variables
-```env
-MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/agrotrack
-PORT=3001
-ENABLE_SIMULATOR=true
-NODE_ENV=development
-```
+### ✅ Real Data Only
+- **No simulator** - Disabled completely
+- **No demo data** - Database cleared
+- **ESP32 OFF** = Dashboard shows no data
+- **ESP32 ON** = Dashboard shows live sensor readings
 
-### Frontend Environment Variables
-```env
-VITE_API_URL=http://localhost:3001
-```
+### ✅ Dual Dashboard Access
+1. **Main Dashboard** - Full-featured web app (http://localhost:5173)
+2. **ESP32 Dashboard** - Direct access from ESP32 (http://ESP32_IP)
 
-### ESP32 Configuration
-```cpp
-const char* ssid = "YourWiFi";
-const char* password = "YourPassword";
-const char* serverUrl = "http://192.168.1.100:3001/api/sensor-data";
-```
+### ✅ Real-Time Updates
+- WebSocket connection for instant updates
+- Green "System Online" indicator when connected
+- Updates every 5 seconds automatically
 
 ---
 
@@ -317,27 +257,127 @@ curl http://localhost:3001/health
 ```
 
 ### Test ESP32 Connection
-1. Open Serial Monitor in Arduino IDE
-2. Check for "✅ WiFi Connected!"
-3. Verify "✅ HTTP Response: 201"
+1. Open Serial Monitor (115200 baud)
+2. Check for:
+   ```
+   ✅ WiFi Connected
+   IP: 10.194.155.xxx
+   📤 POST → HTTP 201
+   ```
 
 ### Test Dashboard
 1. Login to dashboard
 2. Check for green "System Online" indicator
-3. Verify data updates every 5 seconds
+3. Turn ON ESP32
+4. Verify data updates match Serial Monitor
 
 ---
 
-## 🚀 Deployment
+## 🔧 Configuration
 
-### Deploy to Render (Free)
-1. Push code to GitHub
-2. Create Render account
-3. Deploy backend as Web Service
-4. Deploy frontend as Static Site
-5. Update environment variables
+### Current WiFi Settings
+- **SSID:** NetKing
+- **Password:** 11111111
+- **Backend IP:** 10.194.155.197
+- **Backend Port:** 3001
 
-**See:** [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
+### To Change Settings
+Edit `QUICK_CONFIG.md` for step-by-step instructions
+
+---
+
+## 🆘 Troubleshooting
+
+### ESP32 shows "connection refused"
+**Solution:**
+1. Start backend: `npm start`
+2. Check firewall allows port 3001
+3. Verify IP address in ESP32 code
+
+### Dashboard shows old/wrong data
+**Solution:**
+```bash
+cd backend
+node clearData.js
+```
+Then refresh browser: `Ctrl+Shift+R`
+
+### Dashboard shows no data
+**Solution:**
+- This is correct if ESP32 is OFF
+- Turn ON ESP32 to see live data
+- Check Serial Monitor for `📤 POST → HTTP 201`
+
+**See:** [DATA_FLOW_VERIFICATION.md](DATA_FLOW_VERIFICATION.md) for complete troubleshooting
+
+---
+
+## 📁 Project Structure
+
+```
+AgroTrack/
+├── backend/
+│   ├── models/
+│   │   ├── SensorData.js
+│   │   ├── Alert.js
+│   │   └── User.js
+│   ├── server.js
+│   ├── clearData.js          # Clear database script
+│   └── .env
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   │   └── Dashboard.jsx  # Main dashboard
+│   │   └── config.js
+│   └── package.json
+│
+├── esp32_code/
+│   ├── agrotrack_sensor_node/
+│   │   └── agrotrack_sensor_node.ino  # Main ESP32 code
+│   └── agrotrack_web_dashboard/
+│       └── agrotrack_web_dashboard.ino  # ESP32 with web server
+│
+├── QUICK_CONFIG.md
+├── DATA_FLOW_VERIFICATION.md
+├── FINAL_SETUP_COMPLETE.md
+└── README.md
+```
+
+---
+
+## ✅ System Status
+
+- ✅ Backend configured (port 3001)
+- ✅ Frontend configured (port 5173)
+- ✅ Simulator disabled
+- ✅ Database cleared
+- ✅ ESP32 code ready
+- ✅ WiFi configured
+- ✅ Real data only mode
+
+---
+
+## 🎓 How It Works
+
+### When ESP32 is OFF:
+- Dashboard shows no data or zeros
+- This is correct behavior!
+- System waits for ESP32 to connect
+
+### When ESP32 is ON:
+- ESP32 reads sensors every 5 seconds
+- Sends data to backend via HTTP POST
+- Backend logs: `📥 Received sensor data: {...}`
+- Dashboard updates via WebSocket
+- Shows EXACT values from Serial Monitor
+
+**Example:**
+```
+Serial Monitor: Temp: 28.5°C | Humidity: 65.2%
+Dashboard:      Temperature: 28.5°C, Humidity: 65.2%
+```
 
 ---
 
@@ -345,103 +385,34 @@ curl http://localhost:3001/health
 
 Contributions welcome! Please:
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
+2. Create feature branch
+3. Commit changes
+4. Push to branch
 5. Open Pull Request
 
 ---
 
 ## 📝 License
 
-This project is licensed under the MIT License - see LICENSE file for details.
-
----
-
-## 🆘 Support
-
-### Common Issues
-
-**ESP32 won't connect to WiFi?**
-- Check SSID/password
-- Use 2.4GHz WiFi (not 5GHz)
-- Move closer to router
-
-**Dashboard not updating?**
-- Check backend is running
-- Verify WebSocket connection
-- Check browser console for errors
-
-**Sensor readings incorrect?**
-- Calibrate soil moisture sensor
-- Check wiring connections
-- Verify sensor power supply
-
-### Get Help
-- 📖 Read the documentation guides
-- 🐛 Open an issue on GitHub
-- 💬 Check existing issues for solutions
-
----
-
-## 🎓 Learning Resources
-
-- [ESP32 Documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/)
-- [React Documentation](https://react.dev/)
-- [Node.js Best Practices](https://github.com/goldbergyoni/nodebestpractices)
-- [MongoDB University](https://university.mongodb.com/)
+MIT License - see LICENSE file for details
 
 ---
 
 ## 🌟 Features Roadmap
 
-- [ ] GPS location tracking
+- [x] Real-time sensor monitoring
+- [x] ESP32 integration
+- [x] Web dashboard
+- [x] ESP32 built-in web server
+- [x] Real data only mode
 - [ ] Email/SMS alerts
 - [ ] Multi-field support
 - [ ] Weather API integration
-- [ ] Mobile app (React Native)
-- [ ] Data export (CSV/PDF)
+- [ ] Mobile app
 - [ ] Machine learning predictions
-- [ ] Solar power optimization
-
----
-
-## 👥 Authors
-
-- Your Name - Initial work
-
----
-
-## 🙏 Acknowledgments
-
-- Espressif for ESP32 platform
-- Adafruit for sensor libraries
-- MongoDB Atlas for free database hosting
-- Render for free deployment
-
----
-
-## 📊 Project Stats
-
-- **Lines of Code**: ~3000+
-- **Components**: 15+
-- **API Endpoints**: 8
-- **Supported Sensors**: 3+
-- **Real-time Updates**: Yes
-- **Mobile Responsive**: Yes
 
 ---
 
 **Built with ❤️ for sustainable agriculture 🌱**
 
----
-
-## 🔗 Quick Links
-
-- [Live Demo](https://agrotrack-frontend.onrender.com)
-- [API Documentation](https://agrotrack-backend.onrender.com/health)
-- [GitHub Repository](https://github.com/yourusername/agrotrack)
-
----
-
-**Start monitoring your farm today! 🚜🌾**
+**Start monitoring your farm with real sensor data today! 🚜🌾**
