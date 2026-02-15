@@ -37,6 +37,8 @@ const Dashboard = () => {
         soilMoisture: 0,
         cropHealth: 0,
         batteryLevel: 0,
+        rainLevel: 0,
+        obstacleDistance: 0,
         timestamp: new Date()
     });
 
@@ -48,11 +50,15 @@ const Dashboard = () => {
         const fetchHistory = async () => {
             try {
                 const res = await axios.get(`${API_BASE_URL}/api/sensor-data?limit=20`);
-                // Reverse to show oldest to newest in chart
                 const data = res.data.reverse();
-                setHistory(data);
+                
+                // Only set data if we actually have readings
                 if (data.length > 0) {
+                    setHistory(data);
                     setSensorData(data[data.length - 1]);
+                } else {
+                    // No data in database, keep zeros
+                    console.log('No sensor data in database yet');
                 }
             } catch (err) {
                 console.error("Failed to fetch history:", err);
@@ -146,7 +152,7 @@ const Dashboard = () => {
             </div>
 
             {/* Sensor Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 <SensorCard
                     title="Soil Moisture"
                     value={sensorData.soilMoisture}
@@ -169,6 +175,13 @@ const Dashboard = () => {
                     unit="%"
                     icon={CloudFog}
                     color="text-cyan-400"
+                />
+                <SensorCard
+                    title="Rain Level"
+                    value={sensorData.rainLevel}
+                    unit="%"
+                    icon={Droplets}
+                    color="text-indigo-400"
                 />
                 <SensorCard
                     title="Crop Health"
@@ -209,6 +222,10 @@ const Dashboard = () => {
                                 <Cpu size={16} />
                                 {sensorData.batteryLevel}%
                             </div>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-slate-700/50 rounded-lg">
+                            <span className="text-slate-400">Obstacle Distance</span>
+                            <span className="font-bold text-white">{sensorData.obstacleDistance} cm</span>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-slate-700/50 rounded-lg">
                             <span className="text-slate-400">Signal Strength</span>

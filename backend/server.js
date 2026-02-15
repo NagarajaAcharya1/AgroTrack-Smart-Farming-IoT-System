@@ -6,9 +6,6 @@ const http = require('http');
 const { Server } = require('socket.io');
 const dotenv = require('dotenv');
 
-// Simulator
-const { simulateData } = require('./simulator');
-
 // Models
 const SensorData = require('./models/SensorData');
 const Alert = require('./models/Alert');
@@ -46,14 +43,6 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log('✅ MongoDB Atlas Connected');
         isMongoConnected = true;
-        
-        // Start simulator only after MongoDB is connected
-        if (process.env.ENABLE_SIMULATOR === 'true') {
-            console.log('🧪 Sensor simulator enabled');
-            setInterval(() => {
-                simulateData(io);
-            }, 5000);
-        }
     })
     .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
@@ -116,8 +105,22 @@ app.post('/api/sensor-data', async (req, res) => {
             humidity,
             cropHealth,
             batteryLevel,
+            rainLevel,
+            obstacleDistance,
             location
         } = req.body;
+
+        // LOG INCOMING DATA
+        console.log('📥 Received sensor data:', {
+            temp: temperature,
+            humidity: humidity,
+            soil: soilMoisture,
+            rain: rainLevel,
+            obstacle: obstacleDistance,
+            health: cropHealth,
+            battery: batteryLevel,
+            from: req.ip
+        });
 
         const newData = new SensorData({
             soilMoisture,
@@ -125,6 +128,8 @@ app.post('/api/sensor-data', async (req, res) => {
             humidity,
             cropHealth: cropHealth || 85,
             batteryLevel: batteryLevel || 100,
+            rainLevel: rainLevel || 0,
+            obstacleDistance: obstacleDistance || 0,
             location: location || { lat: 12.9716, lng: 77.5946 }
         });
 

@@ -6,6 +6,8 @@ const sensorDataSchema = new mongoose.Schema({
     humidity: { type: Number, required: true }, // Percentage
     cropHealth: { type: Number, default: 0 }, // NDVI or index 0-100
     batteryLevel: { type: Number, default: 100 }, // Robot battery %
+    rainLevel: { type: Number, default: 0 }, // Rain sensor %
+    obstacleDistance: { type: Number, default: 0 }, // Ultrasonic distance cm
     location: {
         lat: { type: Number },
         lng: { type: Number }
