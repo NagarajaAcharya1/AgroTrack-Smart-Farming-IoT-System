@@ -228,6 +228,20 @@ app.get('/api/admin/stats', async (req, res) => {
     }
 });
 
+// -------------------- Robot Control --------------------
+let robotEnabled = true;
+
+app.get('/api/robot-control', (req, res) => {
+    res.json({ enabled: robotEnabled });
+});
+
+app.post('/api/robot-control', (req, res) => {
+    const { enabled } = req.body;
+    robotEnabled = enabled;
+    console.log(`🤖 Robot ${enabled ? 'ENABLED' : 'DISABLED'}`);
+    res.json({ enabled: robotEnabled });
+});
+
 // -------------------- Socket.IO --------------------
 io.on('connection', (socket) => {
     console.log('🔌 Client connected:', socket.id);

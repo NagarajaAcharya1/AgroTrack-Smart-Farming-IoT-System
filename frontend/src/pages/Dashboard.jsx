@@ -44,6 +44,7 @@ const Dashboard = () => {
 
     const [isConnected, setIsConnected] = useState(false);
     const [history, setHistory] = useState([]);
+    const [robotEnabled, setRobotEnabled] = useState(true);
 
     // Fetch initial data
     useEffect(() => {
@@ -64,7 +65,18 @@ const Dashboard = () => {
                 console.error("Failed to fetch history:", err);
             }
         };
+        
+        const fetchRobotStatus = async () => {
+            try {
+                const res = await axios.get(`${API_BASE_URL}/api/robot-control`);
+                setRobotEnabled(res.data.enabled);
+            } catch (err) {
+                console.error("Failed to fetch robot status:", err);
+            }
+        };
+        
         fetchHistory();
+        fetchRobotStatus();
     }, []);
 
     // Socket Connection
@@ -145,14 +157,34 @@ const Dashboard = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold">Field Monitor Dashboard</h1>
-                <div className="flex items-center gap-2">
-                    <span className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
-                    <span className="text-slate-400 font-medium">{isConnected ? 'System Online' : 'Disconnected'}</span>
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={async () => {
+                            try {
+                                const newState = !robotEnabled;
+                                await axios.post(`${API_BASE_URL}/api/robot-control`, { enabled: newState });
+                                setRobotEnabled(newState);
+                            } catch (err) {
+                                console.error('Failed to toggle robot:', err);
+                            }
+                        }}
+                        className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                            robotEnabled
+                                ? 'bg-red-500 hover:bg-red-600 text-white'
+                                : 'bg-green-500 hover:bg-green-600 text-white'
+                        }`}
+                    >
+                        {robotEnabled ? '⏸️ Stop Robot' : '▶️ Start Robot'}
+                    </button>
+                    <div className="flex items-center gap-2">
+                        <span className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
+                        <span className="text-slate-400 font-medium">{isConnected ? 'System Online' : 'Disconnected'}</span>
+                    </div>
                 </div>
             </div>
 
             {/* Sensor Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <SensorCard
                     title="Soil Moisture"
                     value={sensorData.soilMoisture}
@@ -183,13 +215,6 @@ const Dashboard = () => {
                     icon={Droplets}
                     color="text-indigo-400"
                 />
-                <SensorCard
-                    title="Crop Health"
-                    value={sensorData.cropHealth}
-                    unit="Index"
-                    icon={Activity}
-                    color="text-green-400"
-                />
             </div>
 
             {/* Charts Row */}
@@ -216,6 +241,13 @@ const Dashboard = () => {
                 <div className="card md:col-span-1">
                     <h3 className="text-xl font-bold mb-4">Robot Status</h3>
                     <div className="space-y-4">
+                        <div className="flex justify-between items-center p-3 bg-slate-700/50 rounded-lg">
+                            <span className="text-slate-400">Robot Status</span>
+                            <div className="flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full ${robotEnabled ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                                <span className="font-bold text-white">{robotEnabled ? 'Active' : 'Stopped'}</span>
+                            </div>
+                        </div>
                         <div className="flex justify-between items-center p-3 bg-slate-700/50 rounded-lg">
                             <span className="text-slate-400">Battery Level</span>
                             <div className="flex items-center gap-2 font-bold text-green-400">
