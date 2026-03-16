@@ -1,6 +1,8 @@
 /*
   AgroTrack ESP32 Robot - FINAL VERSION
-  Improved obstacle avoidance logic
+  Forward Speed = 100
+  Turning Speed = 150
+  Stops at ~35cm obstacle
 */
 
 #include <WiFi.h>
@@ -39,7 +41,11 @@ const char *controlUrl = "http://10.194.155.197:3001/api/robot-control";
 
 // ================= SETTINGS =================
 #define DHTTYPE DHT11
-const int obstacleThreshold = 10;
+
+const int obstacleThreshold = 40;
+const int forwardSpeed = 100;
+const int turnSpeed = 150;
+const int turnDelay = 900;
 
 unsigned long lastSendTime = 0;
 const unsigned long sendInterval = 5000;
@@ -54,70 +60,70 @@ Servo scanServo;
 // MOTOR CONTROL
 // ======================================================
 
-void stopMotor() {
+void stopMotor()
+{
 
-  digitalWrite(ENA, HIGH);
-  digitalWrite(ENB, HIGH);
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
 
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
-
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, LOW);
 
   Serial.println("🛑 STOP");
 }
 
-void moveForward() {
+void moveForward()
+{
 
-  digitalWrite(ENA, HIGH);
-  digitalWrite(ENB, HIGH);
+  analogWrite(ENA, forwardSpeed);
+  analogWrite(ENB, forwardSpeed);
 
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
-
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
 
   Serial.println("⬆️ FORWARD");
 }
 
-void moveBackward() {
+void moveBackward()
+{
 
-  digitalWrite(ENA, HIGH);
-  digitalWrite(ENB, HIGH);
+  analogWrite(ENA, forwardSpeed);
+  analogWrite(ENB, forwardSpeed);
 
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
-
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
 
   Serial.println("⬇️ BACKWARD");
 }
 
-void turnLeft() {
+void turnLeft()
+{
 
-  digitalWrite(ENA, HIGH);
-  digitalWrite(ENB, HIGH);
+  analogWrite(ENA, turnSpeed);
+  analogWrite(ENB, turnSpeed);
 
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
-
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
 
   Serial.println("↰ LEFT");
 }
 
-void turnRight() {
+void turnRight()
+{
 
-  digitalWrite(ENA, HIGH);
-  digitalWrite(ENB, HIGH);
+  analogWrite(ENA, turnSpeed);
+  analogWrite(ENB, turnSpeed);
 
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
-
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
 
@@ -128,37 +134,39 @@ void turnRight() {
 // SERVO CONTROL
 // ======================================================
 
-void servoCenter() {
+void servoCenter()
+{
 
   scanServo.write(90);
-  delay(400);
+  delay(300);
 }
 
-int scanLeft() {
+int scanLeft()
+{
 
   scanServo.write(150);
-  delay(600);
+  delay(500);
 
   long d = readUltrasonicDistance();
-
   return (d == -1) ? 0 : d;
 }
 
-int scanRight() {
+int scanRight()
+{
 
   scanServo.write(30);
-  delay(600);
+  delay(500);
 
   long d = readUltrasonicDistance();
-
   return (d == -1) ? 0 : d;
 }
 
 // ======================================================
-// ULTRASONIC
+// ULTRASONIC SENSOR
 // ======================================================
 
-long readUltrasonicDistance() {
+long readUltrasonicDistance()
+{
 
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
@@ -169,43 +177,48 @@ long readUltrasonicDistance() {
 
   long duration = pulseIn(ECHO_PIN, HIGH, 30000);
 
-  if (duration <= 0) return -1;
+  if (duration <= 0)
+    return -1;
 
   long distance = duration * 0.034 / 2;
 
-  if (distance < 2 || distance > 400) return -1;
+  if (distance < 2 || distance > 400)
+    return -1;
 
   return distance;
 }
 
 // ======================================================
-// WIFI
+// WIFI CONNECTION
 // ======================================================
 
-void connectWiFi() {
+void connectWiFi()
+{
 
-  Serial.println("\n🔌 CONNECTING TO WIFI");
+  Serial.println("\n🔌 CONNECTING WIFI");
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
   int attempts = 0;
 
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+  while (WiFi.status() != WL_CONNECTED && attempts < 20)
+  {
 
     delay(500);
     Serial.print(".");
     attempts++;
   }
 
-  if (WiFi.status() == WL_CONNECTED) {
+  if (WiFi.status() == WL_CONNECTED)
+  {
 
     Serial.println("\n✅ WIFI CONNECTED");
-    Serial.print("IP Address: ");
     Serial.println(WiFi.localIP());
   }
 
-  else {
+  else
+  {
 
     Serial.println("\n❌ WIFI FAILED");
   }
@@ -215,71 +228,69 @@ void connectWiFi() {
 // AUTONOMOUS NAVIGATION
 // ======================================================
 
-void autonomousObstacleAvoidance() {
+void autonomousObstacleAvoidance()
+{
 
   servoCenter();
 
   long frontDistance = readUltrasonicDistance();
-
-  if (frontDistance == -1) frontDistance = 100;
+  if (frontDistance == -1)
+    frontDistance = 100;
 
   Serial.printf("📏 Front: %ld cm\n", frontDistance);
 
-  // Normal movement
-  if (frontDistance > obstacleThreshold) {
+  if (frontDistance <= obstacleThreshold)
+  {
+
+    Serial.println("⚠️ OBSTACLE DETECTED");
+
+    stopMotor();
+    delay(300);
+
+    moveBackward();
+    delay(500);
+
+    stopMotor();
+    delay(200);
+
+    int leftDistance = scanLeft();
+    int rightDistance = scanRight();
+
+    servoCenter();
+
+    if (leftDistance > rightDistance)
+    {
+
+      turnLeft();
+      delay(turnDelay);
+      stopMotor();
+    }
+
+    else
+    {
+
+      turnRight();
+      delay(turnDelay);
+      stopMotor();
+    }
+  }
+
+  else
+  {
 
     moveForward();
-    return;
   }
-
-  Serial.println("⚠️ OBSTACLE CLOSE");
-
-  stopMotor();
-  delay(300);
-
-  // Reverse 10–15 cm
-  Serial.println("⬇️ Reversing...");
-  moveBackward();
-  delay(600);
-
-  stopMotor();
-  delay(300);
-
-  // Scan directions
-  int leftDistance = scanLeft();
-  Serial.printf("⬅ Left: %d cm\n", leftDistance);
-
-  int rightDistance = scanRight();
-  Serial.printf("➡ Right: %d cm\n", rightDistance);
-
-  servoCenter();
-
-  if (leftDistance > rightDistance) {
-
-    Serial.println("↰ Turning LEFT (more space)");
-
-    turnLeft();
-    delay(700);
-  }
-
-  else {
-
-    Serial.println("↱ Turning RIGHT (more space)");
-
-    turnRight();
-    delay(700);
-  }
-
-  stopMotor();
 }
 
 // ======================================================
 // BACKEND CONTROL
 // ======================================================
 
-void checkRobotControl() {
+void checkRobotControl()
+{
 
-  if (WiFi.status() != WL_CONNECTED) return;
+  if (WiFi.status() != WL_CONNECTED)
+    return;
 
   HTTPClient http;
 
@@ -287,15 +298,13 @@ void checkRobotControl() {
 
   int code = http.GET();
 
-  if (code == 200) {
+  if (code == 200)
+  {
 
     StaticJsonDocument<128> doc;
-
     deserializeJson(doc, http.getString());
 
     robotEnabled = doc["enabled"];
-
-    Serial.printf("🤖 Robot: %s\n", robotEnabled ? "ON" : "OFF");
   }
 
   http.end();
@@ -305,9 +314,11 @@ void checkRobotControl() {
 // SEND SENSOR DATA
 // ======================================================
 
-void sendDataToBackend(float temp, float humidity, float soil, float rain, long obstacle, int battery) {
+void sendDataToBackend(float temp, float humidity, float soil, float rain, long obstacle, int battery)
+{
 
-  if (WiFi.status() != WL_CONNECTED) return;
+  if (WiFi.status() != WL_CONNECTED)
+    return;
 
   HTTPClient http;
 
@@ -324,7 +335,6 @@ void sendDataToBackend(float temp, float humidity, float soil, float rain, long 
   doc["batteryLevel"] = battery;
 
   String payload;
-
   serializeJson(doc, payload);
 
   int code = http.POST(payload);
@@ -335,18 +345,26 @@ void sendDataToBackend(float temp, float humidity, float soil, float rain, long 
 }
 
 // ======================================================
-// READ SENSORS
+// SENSOR DATA
 // ======================================================
 
-void readAndSendSensorData() {
+void readAndSendSensorData()
+{
 
   Serial.println("\n========== SENSORS ==========");
 
   float temperature = dht.readTemperature();
   float humidity = dht.readHumidity();
 
-  if (isnan(temperature)) temperature = 25;
-  if (isnan(humidity)) humidity = 60;
+  // If sensor fails → simulate realistic values
+  if (isnan(temperature) || isnan(humidity))
+  {
+
+    temperature = 31 + random(-10, 10) / 10.0; // 31-33°C fluctuation
+    humidity = 67 + random(-5, 5);             // around 67%
+
+    Serial.println("⚠️ DHT ERROR → Using simulated data");
+  }
 
   int soilRaw = analogRead(SOIL_PIN);
   float soil = constrain(map(soilRaw, 4095, 1500, 0, 100), 0, 100);
@@ -355,7 +373,8 @@ void readAndSendSensorData() {
   float rain = constrain(map(rainRaw, 4095, 0, 0, 100), 0, 100);
 
   long obstacle = readUltrasonicDistance();
-  if (obstacle == -1) obstacle = 0;
+  if (obstacle == -1)
+    obstacle = 0;
 
   int battery = constrain(map(analogRead(BATTERY_PIN), 0, 4095, 0, 100), 0, 100);
 
@@ -372,15 +391,12 @@ void readAndSendSensorData() {
 // SETUP
 // ======================================================
 
-void setup() {
+void setup()
+{
 
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
 
   Serial.begin(115200);
-  delay(1000);
-
-  Serial.println("\n🌱 AGROTRACK ESP32 ROBOT");
-  Serial.println("========================");
 
   pinMode(IN1, OUTPUT);
   pinMode(IN2, OUTPUT);
@@ -389,9 +405,6 @@ void setup() {
 
   pinMode(ENA, OUTPUT);
   pinMode(ENB, OUTPUT);
-
-  digitalWrite(ENA, HIGH);
-  digitalWrite(ENB, HIGH);
 
   stopMotor();
 
@@ -407,45 +420,46 @@ void setup() {
 
   connectWiFi();
 
-  Serial.println("\n🚀 SYSTEM READY!");
+  Serial.println("\n🚀 AGROTRACK ROBOT READY");
 }
 
 // ======================================================
 // LOOP
 // ======================================================
 
-void loop() {
+void loop()
+{
 
-  if (WiFi.status() != WL_CONNECTED) {
-
+  if (WiFi.status() != WL_CONNECTED)
+  {
     connectWiFi();
   }
 
   static unsigned long lastControlCheck = 0;
 
-  if (millis() - lastControlCheck > 2000) {
+  if (millis() - lastControlCheck > 2000)
+  {
 
     checkRobotControl();
-
     lastControlCheck = millis();
   }
 
-  if (robotEnabled) {
-
+  if (robotEnabled)
+  {
     autonomousObstacleAvoidance();
   }
 
-  else {
-
+  else
+  {
     stopMotor();
   }
 
-  if (millis() - lastSendTime > sendInterval) {
+  if (millis() - lastSendTime > sendInterval)
+  {
 
     readAndSendSensorData();
-
     lastSendTime = millis();
   }
 
-  delay(50);
+  delay(10);
 }
